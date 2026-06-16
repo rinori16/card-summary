@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="明細集計">
+<meta name="theme-color" content="#f5f3ee">
+<title>カード明細 個人別集計</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --surface2: #eeece6;
+    --border: #dedad1;
+    --text: #1a1814;
+    --text2: #6b6760;
+    --text3: #9e9b95;
+    --accent1: #2d6a4f;
+    --accent1bg: #e8f5ee;
+    --accent1border: #a8d5bb;
+    --green: #2d6a4f;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    flex-shrink: 0;
+    background: rgba(245, 243, 238, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  header p  { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+  main {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+
+  /* ── Drop zone (shown when no data) ── */
+  #dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+  #dropzone.drag-over { border-color: var(--accent1); background: var(--accent1bg); }
+  #dropzone.hidden { display: none; }
+  #dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
+  #dropzone h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  #dropzone p  { font-size: 12px; color: var(--text3); line-height: 1.5; }
+  .btn-label {
+    display: inline-block;
+    margin-top: 14px;
+    background: var(--text);
+    color: var(--bg);
+    padding: 8px 22px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* ── App (shown when data loaded) ── */
+  #app {
+    flex: 1;
+    overflow: hidden;
+    display: none;          /* shown via JS */
+    flex-direction: column;
+  }
+  #app.visible { display: flex; }
+
+  /* Month tabs */
+  .month-tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+  }
+  .month-tabs::-webkit-scrollbar { display: none; }
+  .month-tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .month-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* Month view */
+  .month-view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .month-view.active { display: flex; }
+
+  /* Total banner */
+  .total-banner {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .total-banner-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .total-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .total-chip { border-radius: var(--radius-sm); padding: 10px 12px; }
+  .total-chip-name  { font-size: 11px; font-weight: 500; margin-bottom: 3px; opacity: 0.75; }
+  .total-chip-amount { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; }
+
+  /* Person cards grid — fills remaining height */
+  .person-cards-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  /* Person card — stretches to fill grid cell */
+  .person-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .person-header {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+  }
+  .person-header-left { display: flex; align-items: center; gap: 10px; }
+  .person-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+  .person-name  { font-size: 14px; font-weight: 600; }
+  .person-count { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .person-total { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+
+  /* Transaction list — always open */
+  .tx-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .tx-list-inner {
+    border-top: 1px solid var(--border);
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tx-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-store {
+    font-size: 13px;
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tx-date   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .tx-amount { font-size: 13px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+  .tx-amount.negative { color: var(--green); }
+
+  /* Footer bar */
+  .header-bar {
+    display: flex;
+    gap: 6px;
+  }
+  .header-btn {
+    padding: 5px 11px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .header-btn:active { background: var(--surface2); }
+</style>
+</head>
+<body>
+
+<header style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1>💳 カード明細集計</h1>
+    <p>CSVを読み込むと個人別に自動集計</p>
+  </div>
+  <div id="header-buttons" class="header-bar" style="display:none;">
+    <button class="header-btn" onclick="document.getElementById('fileInput2').click()">📂 追加<input type="file" id="fileInput2" accept=".csv" multiple style="display:none" onchange="handleFiles(this.files)"></button>
+    <button class="header-btn" onclick="resetAll()">🗑 クリア</button>
+  </div>
+</header>
+
+<main>
+  <div id="dropzone">
+    <input type="file" id="fileInput" accept=".csv" multiple>
+    <span class="dropzone-icon">📂</span>
+    <h2>明細CSVを選択</h2>
+    <p>複数月まとめて選べます<br>（202606.csv, 202607.csv など）</p>
+    <span class="btn-label">ファイルを選ぶ</span>
+  </div>
+
+  <div id="app"></div>
+</main>
+
+<script>
+const COLORS = [
+  { bg:'#e8f5ee', text:'#2d6a4f', border:'#a8d5bb', avatarBg:'#2d6a4f', avatarText:'#e8f5ee' },
+  { bg:'#eeecfb', text:'#4a3580', border:'#c5bef0', avatarBg:'#4a3580', avatarText:'#eeecfb' },
+  { bg:'#fdf0e3', text:'#7a4010', border:'#f5c98a', avatarBg:'#7a4010', avatarText:'#fdf0e3' },
+  { bg:'#fceef3', text:'#8b1a3a', border:'#f0adc6', avatarBg:'#8b1a3a', avatarText:'#fceef3' },
+];
+
+function decodeFile(buf) {
+  for (const enc of ['shift-jis','utf-8','euc-jp']) {
+    try {
+      const t = new TextDecoder(enc,{fatal:true}).decode(buf);
+      if (t.includes('ご利用')||t.includes('確定')) return t;
+    } catch(e){}
+  }
+  return new TextDecoder('shift-jis').decode(buf);
+}
+
+function parseCSVText(text) {
+  return text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').map(line => {
+    const cols=[]; let cur='', inQ=false;
+    for (let i=0;i<line.length;i++) {
+      const c=line[i];
+      if (c==='"') { if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
+      else if (c===','&&!inQ) { cols.push(cur.trim());cur=''; }
+      else cur+=c;
+    }
+    cols.push(cur.trim()); return cols;
+  });
+}
+
+function parseMonth(fn) {
+  const m=fn.match(/(\d{4})(\d{2})/);
+  return m?`${m[1]}年${parseInt(m[2])}月`:fn.replace('.csv','');
+}
+function parseAmt(s) {
+  const n=parseInt(String(s||'').replace(/[,\s]/g,''),10);
+  return isNaN(n)?NaN:n;
+}
+function processCSV(text,fn) {
+  const rows=parseCSVText(text); if(rows.length<2) return null;
+  const h=rows[0];
+  const si=h.findIndex(x=>x.includes('ご利用店名'));
+  const ai=h.findIndex(x=>x.includes('ご利用金額'));
+  const di=h.findIndex(x=>x.includes('ご利用日'));
+  if(si<0||ai<0) return null;
+  const persons=[]; let cur=null;
+  for (let i=1;i<rows.length;i++) {
+    const r=rows[i];
+    const store=(r[si]||'').trim(), amts=(r[ai]||'').trim(), date=(r[di]||'').trim();
+    const nm=store.match(/【(.+?)様】/);
+    if(nm){cur={name:nm[1].replace(/\u3000/g,' ').trim(),transactions:[],total:0};persons.push(cur);continue;}
+    if(cur&&amts){const a=parseAmt(amts);if(!isNaN(a)){cur.transactions.push({store,amount:a,date});cur.total+=a;}}
+  }
+  return {month:parseMonth(fn),persons,filename:fn};
+}
+
+function fmt(n){return(n<0?'−':'')+Math.abs(n).toLocaleString('ja-JP')+'円';}
+function initials(name){const p=name.replace(/\s+/g,' ').trim().split(' ');return p.length>=2?p[0][0]+p[1][0]:name.slice(0,2);}
+
+let allData=[], activeMonth=null;
+
+function render() {
+  const app=document.getElementById('app');
+  const dz=document.getElementById('dropzone');
+
+  if (!allData.length) {
+    app.classList.remove('visible');
+    app.innerHTML='';
+    dz.classList.remove('hidden');
+    return;
+  }
+  dz.classList.add('hidden');
+  app.classList.add('visible');
+
+  const allNames=[...new Set(allData.flatMap(m=>m.persons.map(p=>p.name)))];
+  const colorMap={};
+  allNames.forEach((n,i)=>colorMap[n]=COLORS[i%COLORS.length]);
+
+  let html='';
+
+  // Month tabs
+  if (allData.length>1) {
+    html+=`<div class="month-tabs">`;
+    allData.forEach(m=>{
+      const a=m.filename===activeMonth?' active':'';
+      html+=`<div class="month-tab${a}" onclick="switchMonth('${m.filename}')">${m.month}</div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // Month views
+  allData.forEach(m=>{
+    const isActive=m.filename===activeMonth;
+    html+=`<div class="month-view${isActive?' active':''}" id="view-${m.filename}">`;
+
+    // Total banner
+    html+=`<div class="total-banner"><div class="total-banner-label">今月の合計</div><div class="total-banner-grid">`;
+    m.persons.forEach(p=>{
+      const c=colorMap[p.name];
+      html+=`<div class="total-chip" style="background:${c.bg};border:1px solid ${c.border};">
+        <div class="total-chip-name" style="color:${c.text};">${p.name}</div>
+        <div class="total-chip-amount" style="color:${c.text};">${fmt(p.total)}</div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+
+    // Person cards (side by side, fill remaining height)
+    html+=`<div class="person-cards-grid">`;
+    m.persons.forEach(p=>{
+      const c=colorMap[p.name];
+      html+=`<div class="person-card">
+        <div class="person-header">
+          <div class="person-header-left">
+            <div class="person-avatar" style="background:${c.avatarBg};color:${c.avatarText};">${initials(p.name)}</div>
+            <div>
+              <div class="person-name">${p.name}</div>
+              <div class="person-count">${p.transactions.length}件の利用</div>
+            </div>
+          </div>
+          <div class="person-total" style="color:${c.text};">${fmt(p.total)}</div>
+        </div>
+        <div class="tx-list">
+          <div class="tx-list-inner">`;
+      p.transactions.forEach(tx=>{
+        const neg=tx.amount<0;
+        const ds=tx.date?tx.date.replace('年','/').replace('月','/').replace('日',''):'';
+        html+=`<div class="tx-row">
+          <div style="min-width:0;flex:1;">
+            <div class="tx-store">${tx.store}</div>
+            ${ds?`<div class="tx-date">${ds}</div>`:''}
+          </div>
+          <div class="tx-amount${neg?' negative':''}">${fmt(tx.amount)}</div>
+        </div>`;
+      });
+      html+=`</div></div></div>`;
+    });
+    html+=`</div>`; // person-cards-grid
+
+    html+=`</div>`; // month-view
+  });
+
+  app.innerHTML=html;
+  document.getElementById('header-buttons').style.display='flex';
+}
+
+function switchMonth(fn){activeMonth=fn;render();}
+function resetAll(){allData=[];activeMonth=null;render();document.getElementById('header-buttons').style.display='none';}
+
+async function handleFiles(files) {
+  const res=[];
+  for (const file of Array.from(files)) {
+    if (!file.name.match(/\.csv$/i)) continue;
+    const buf=await file.arrayBuffer();
+    const text=decodeFile(buf);
+    const data=processCSV(text,file.name);
+    if (data) res.push(data);
+  }
+  if (!res.length){alert('有効なCSVファイルが見つかりませんでした');return;}
+  res.forEach(d=>{
+    const i=allData.findIndex(x=>x.filename===d.filename);
+    if(i>=0)allData[i]=d; else allData.push(d);
+  });
+  allData.sort((a,b)=>a.filename.localeCompare(b.filename));
+  if (!activeMonth||!allData.find(d=>d.filename===activeMonth)) activeMonth=allData[allData.length-1].filename;
+  render();
+}
+
+const dz=document.getElementById('dropzone');
+const fi=document.getElementById('fileInput');
+fi.addEventListener('change',()=>handleFiles(fi.files));
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+</script>
+</body>
+</html>
