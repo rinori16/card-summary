@@ -126,6 +126,126 @@
   }
   .month-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 
+  /* Filters and view switcher */
+  .toolbar {
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .toolbar input {
+    min-height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 12px;
+  }
+  .toolbar input { flex: 1 1 180px; min-width: 140px; }
+  .sort-menu { position: relative; flex: 0 0 184px; }
+  .sort-trigger {
+    width: 100%;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .sort-trigger:hover, .sort-menu.open .sort-trigger {
+    border-color: var(--accent1border);
+    box-shadow: 0 0 0 3px var(--accent1bg);
+  }
+  .sort-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sort-trigger-icon { color: var(--text3); font-size: 15px; line-height: 1; transition: transform .15s; }
+  .sort-menu.open .sort-trigger-icon { transform: rotate(180deg); }
+  .sort-options {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    display: none;
+    padding: 5px;
+    background: rgba(255,255,255,.98);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    box-shadow: 0 12px 28px rgba(26,24,20,.14), 0 2px 5px rgba(26,24,20,.08);
+  }
+  .sort-menu.open .sort-options { display: grid; gap: 2px; }
+  .sort-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text2);
+    padding: 8px 9px;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .sort-option:hover { background: var(--surface2); color: var(--text); }
+  .sort-option.selected { background: var(--accent1bg); color: var(--accent1); font-weight: 600; }
+  .sort-option-check { font-size: 13px; }
+  .view-tabs { display: flex; gap: 5px; }
+  .view-tab {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text2);
+    padding: 7px 11px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .view-tab.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+
+  /* All-period analysis */
+  .analysis-view { display: none; flex: 1; min-height: 0; overflow-y: auto; }
+  .analysis-view.active { display: block; }
+  .analysis-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .metric-card, .analysis-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 14px;
+  }
+  .metric-label { color: var(--text3); font-size: 11px; margin-bottom: 5px; }
+  .metric-value { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
+  .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .analysis-card h2 { font-size: 14px; margin-bottom: 12px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; overflow-x: auto; padding-top: 14px; }
+  .bar-column { flex: 1 0 46px; min-width: 46px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+  .bar-value { font-size: 10px; color: var(--text2); white-space: nowrap; }
+  .bar { width: 28px; min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--accent1); }
+  .bar-label { font-size: 10px; color: var(--text3); white-space: nowrap; }
+  .trend-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .trend-table th, .trend-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .trend-table th:first-child, .trend-table td:first-child { text-align: left; }
+  .trend-table th { color: var(--text3); font-weight: 500; }
+  .empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 30px 12px; }
+  .status-message { flex-shrink: 0; color: var(--text2); font-size: 12px; padding: 2px 2px 8px; }
+
   /* Month view */
   .month-view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
   .month-view.active { display: flex; }
@@ -266,6 +386,16 @@
 
   /* ── Mobile: tap a total-chip to show only that person's transactions ── */
   @media (max-width: 768px) {
+    main { padding-left: 12px; padding-right: 12px; }
+    .toolbar { gap: 6px; }
+    .toolbar input { flex-basis: 100%; }
+    .sort-menu { flex: 1; min-width: 0; }
+    .view-tabs { flex: 1; }
+    .view-tab { flex: 1; }
+    .analysis-summary { gap: 6px; }
+    .metric-card { padding: 10px; }
+    .metric-value { font-size: 16px; }
+    .analysis-grid { grid-template-columns: 1fr; }
     .total-chip {
       cursor: pointer;
       opacity: 0.5;
@@ -370,126 +500,86 @@ function processCSV(text,fn) {
 function fmt(n){return(n<0?'−':'')+Math.abs(n).toLocaleString('ja-JP')+'円';}
 function initials(name){const p=name.replace(/\s+/g,' ').trim().split(' ');return p.length>=2?p[0][0]+p[1][0]:name.slice(0,2);}
 
-let allData=[], activeMonth=null, selectedPerson={};
+let allData=[], activeMonth=null, selectedPerson={}, currentView='months';
+let filters={query:'',sort:'date-desc'};
+let statusMessage='';
+let queryComposing=false;
 
-function render() {
-  const app=document.getElementById('app');
-  const dz=document.getElementById('dropzone');
-
-  if (!allData.length) {
-    app.classList.remove('visible');
-    app.innerHTML='';
-    dz.classList.remove('hidden');
-    return;
-  }
-  dz.classList.add('hidden');
-  app.classList.add('visible');
-
-  const allNames=[...new Set(allData.flatMap(m=>m.persons.map(p=>p.name)))];
-  const colorMap={};
-  allNames.forEach((n,i)=>colorMap[n]=COLORS[i%COLORS.length]);
-
-  let html='';
-
-  // Month tabs
-  if (allData.length>1) {
-    html+=`<div class="month-tabs">`;
-    allData.forEach(m=>{
-      const a=m.filename===activeMonth?' active':'';
-      html+=`<div class="month-tab${a}" onclick="switchMonth('${m.filename}')">${m.month}</div>`;
-    });
-    html+=`</div>`;
-  }
-
-  // Month views
-  allData.forEach(m=>{
-    const isActive=m.filename===activeMonth;
-    html+=`<div class="month-view${isActive?' active':''}" id="view-${m.filename}">`;
-
-    // Total banner
-    const sel = selectedPerson[m.filename] || (m.persons[0] && m.persons[0].name);
-    const grandTotal = m.persons.reduce((sum, p) => sum + p.total, 0);
-    html+=`<div class="total-banner">
-      <div class="grand-total">
-        <div class="grand-total-label">今月の合計金額</div>
-        <div class="grand-total-amount">${fmt(grandTotal)}</div>
-      </div>
-      <div class="total-banner-label">名前別の合計</div><div class="total-banner-grid">`;
-    m.persons.forEach(p=>{
-      const c=colorMap[p.name];
-      const isSel=p.name===sel?' selected':'';
-      html+=`<div class="total-chip${isSel}" onclick="selectPerson('${m.filename}','${p.name}')" style="background:${c.bg};border:1px solid ${c.border};">
-        <div class="total-chip-name" style="color:${c.text};">${p.name}</div>
-        <div class="total-chip-amount" style="color:${c.text};">${fmt(p.total)}</div>
-      </div>`;
-    });
-    html+=`</div></div>`;
-
-    // Person cards (side by side on desktop; tap-to-switch on mobile)
-    html+=`<div class="person-cards-grid">`;
-    m.persons.forEach(p=>{
-      const c=colorMap[p.name];
-      const isSel=p.name===sel?' selected':'';
-      html+=`<div class="person-card${isSel}">
-        <div class="person-header">
-          <div class="person-header-left">
-            <div class="person-avatar" style="background:${c.avatarBg};color:${c.avatarText};">${initials(p.name)}</div>
-            <div>
-              <div class="person-name">${p.name}</div>
-              <div class="person-count">${p.transactions.length}件の利用</div>
-            </div>
-          </div>
-          <div class="person-total" style="color:${c.text};">${fmt(p.total)}</div>
-        </div>
-        <div class="tx-list">
-          <div class="tx-list-inner">`;
-      p.transactions.forEach(tx=>{
-        const neg=tx.amount<0;
-        const ds=tx.date?tx.date.replace('年','/').replace('月','/').replace('日',''):'';
-        html+=`<div class="tx-row">
-          <div style="min-width:0;flex:1;">
-            <div class="tx-store">${tx.store}</div>
-            ${ds?`<div class="tx-date">${ds}</div>`:''}
-          </div>
-          <div class="tx-amount${neg?' negative':''}">${fmt(tx.amount)}</div>
-        </div>`;
-      });
-      html+=`</div></div></div>`;
-    });
-    html+=`</div>`; // person-cards-grid
-
-    html+=`</div>`; // month-view
-  });
-
-  app.innerHTML=html;
-  document.getElementById('header-buttons').style.display='flex';
+function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function enc(value){return encodeURIComponent(String(value??''));}
+function compactAmt(n){return Math.abs(n)>=10000?`${Math.round(n/10000)}万円`:fmt(n);}
+function monthLabel(m){return m.month.replace('年','/').replace('月','');}
+function allTransactions(){return allData.flatMap(m=>m.persons.flatMap(p=>p.transactions.map(tx=>({...tx,name:p.name,filename:m.filename,month:m.month}))));}
+function matches(tx){const q=filters.query.trim().toLowerCase();return !q||[tx.store,tx.name,tx.date,tx.month].some(v=>String(v||'').toLowerCase().includes(q));}
+function dateValue(value){const m=String(value||'').match(/(\d{4})年(\d{1,2})月(?:\d{1,2}日)?/);return m?Number(m[1])*10000+Number(m[2])*100+(Number((String(value||'').match(/月(\d{1,2})日/)||[])[1])||0):0;}
+function sortTransactions(items){return [...items].sort((a,b)=>{if(filters.sort==='amount-desc')return b.amount-a.amount;if(filters.sort==='amount-asc')return a.amount-b.amount;if(filters.sort==='store')return String(a.store).localeCompare(String(b.store),'ja');const order=dateValue(a.date||a.month)-dateValue(b.date||b.month);return filters.sort==='date-asc'?order:-order;});}
+function visibleTransactions(p,m){return sortTransactions(p.transactions.map(tx=>({...tx,name:p.name,filename:m.filename,month:m.month})).filter(matches));}
+const sortOptions=[['date-desc','日付が新しい順'],['date-asc','日付が古い順'],['amount-desc','金額が大きい順'],['amount-asc','金額が小さい順'],['store','利用先名順']];
+let sortMenuOpen=false;
+function formatToolbar(){
+  const sortLabel=sortOptions.find(([value])=>value===filters.sort)?.[1]||sortOptions[0][1];
+  const options=sortOptions.map(([value,label])=>`<button class="sort-option${filters.sort===value?' selected':''}" onclick="chooseSort('${value}')"><span>${label}</span>${filters.sort===value?'<span class="sort-option-check">✓</span>':''}</button>`).join('');
+  return `<div class="toolbar"><input id="searchInput" type="search" placeholder="利用先・名前・日付で検索" value="${esc(filters.query)}" oncompositionstart="queryComposing=true" oncompositionend="finishQuery(this.value)" oninput="updateQuery(this.value, event)" onchange="finishQuery(this.value)" onkeyup="if(event.key==='Enter') finishQuery(this.value)"><div class="sort-menu${sortMenuOpen?' open':''}"><button class="sort-trigger" aria-expanded="${sortMenuOpen}" onclick="toggleSortMenu(event)"><span class="sort-trigger-label">${sortLabel}</span><span class="sort-trigger-icon">⌄</span></button><div class="sort-options" role="menu">${options}</div></div><div class="view-tabs"><button class="view-tab${currentView==='months'?' active':''}" onclick="switchView('months')">月別明細</button><button class="view-tab${currentView==='analysis'?' active':''}" onclick="switchView('analysis')">全期間分析</button></div></div>${statusMessage?`<div class="status-message">${esc(statusMessage)}</div>`:''}`;
 }
 
-function switchMonth(fn){activeMonth=fn;render();}
-function selectPerson(fn,name){selectedPerson[fn]=name;render();}
-function resetAll(){allData=[];activeMonth=null;selectedPerson={};render();document.getElementById('header-buttons').style.display='none';}
+function renderAnalysis(){
+  const tx=sortTransactions(allTransactions().filter(matches));
+  const total=tx.reduce((sum,item)=>sum+item.amount,0);
+  const months=allData.map(m=>{const items=tx.filter(item=>item.filename===m.filename);return {...m,total:items.reduce((sum,item)=>sum+item.amount,0),count:items.length};}).filter(m=>m.count);
+  const max=Math.max(...months.map(m=>Math.abs(m.total)),1),names=[...new Set(tx.map(item=>item.name))];
+  let html='<div class="analysis-view active"><div class="analysis-summary"><div class="metric-card"><div class="metric-label">全期間の合計</div><div class="metric-value">'+fmt(total)+'</div></div><div class="metric-card"><div class="metric-label">利用件数</div><div class="metric-value">'+tx.length.toLocaleString('ja-JP')+'件</div></div><div class="metric-card"><div class="metric-label">月平均</div><div class="metric-value">'+fmt(months.length?Math.round(total/months.length):0)+'</div></div></div><div class="analysis-grid"><section class="analysis-card"><h2>月別合計</h2>';
+  if(!months.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="bar-chart">';months.forEach(m=>{const h=Math.max(Math.round(Math.abs(m.total)/max*135),3);html+=`<div class="bar-column"><div class="bar-value">${compactAmt(m.total)}</div><div class="bar" style="height:${h}px" title="${esc(m.month)} ${fmt(m.total)}"></div><div class="bar-label">${esc(monthLabel(m))}</div></div>`;});html+='</div>';}
+  html+='</section><section class="analysis-card"><h2>名前別の月別推移</h2>';
+  if(!names.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>名前</th>';months.forEach(m=>html+=`<th>${esc(monthLabel(m))}</th>`);html+='</tr></thead><tbody>';names.forEach(name=>{html+=`<tr><td>${esc(name)}</td>`;months.forEach(m=>{const sum=tx.filter(item=>item.name===name&&item.filename===m.filename).reduce((s,item)=>s+item.amount,0);html+=`<td>${fmt(sum)}</td>`;});html+='</tr>';});html+='</tbody></table></div>';}
+  return html+'</section></div></div>';
+}
+
+function renderMonthViews(){
+  let html='';if(allData.length>1){html+='<div class="month-tabs">';allData.forEach(m=>html+=`<button class="month-tab${m.filename===activeMonth?' active':''}" onclick="switchMonth('${enc(m.filename)}')">${esc(m.month)}</button>`);html+='</div>';}
+  const active=allData.find(m=>m.filename===activeMonth)||allData.at(-1);if(!active)return html;
+  const names=[...new Set(allData.flatMap(m=>m.persons.map(p=>p.name)))],colorMap={};names.forEach((n,i)=>colorMap[n]=COLORS[i%COLORS.length]);
+  const people=active.persons.map(p=>{const transactions=visibleTransactions(p,active);return {...p,transactions,total:transactions.reduce((s,tx)=>s+tx.amount,0)};}).filter(p=>p.transactions.length);
+  const selected=selectedPerson[active.filename]||(people[0]&&people[0].name),grand=people.reduce((s,p)=>s+p.total,0);
+  html+=`<div class="month-view active"><div class="total-banner"><div class="grand-total"><div class="grand-total-label">${esc(active.month)}の合計金額</div><div class="grand-total-amount">${fmt(grand)}</div></div><div class="total-banner-label">名前別の合計</div><div class="total-banner-grid">`;
+  if(!people.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';
+  people.forEach(p=>{const c=colorMap[p.name];html+=`<div class="total-chip${p.name===selected?' selected':''}" onclick="selectPerson('${enc(active.filename)}','${enc(p.name)}')" style="background:${c.bg};border:1px solid ${c.border};"><div class="total-chip-name" style="color:${c.text};">${esc(p.name)}</div><div class="total-chip-amount" style="color:${c.text};">${fmt(p.total)}</div></div>`;});
+  html+='</div></div><div class="person-cards-grid">';
+  people.forEach(p=>{const c=colorMap[p.name];html+=`<div class="person-card${p.name===selected?' selected':''}"><div class="person-header"><div class="person-header-left"><div class="person-avatar" style="background:${c.avatarBg};color:${c.avatarText};">${esc(initials(p.name))}</div><div><div class="person-name">${esc(p.name)}</div><div class="person-count">${p.transactions.length}件の利用</div></div></div><div class="person-total" style="color:${c.text};">${fmt(p.total)}</div></div><div class="tx-list"><div class="tx-list-inner">`;p.transactions.forEach(tx=>{const date=tx.date?esc(tx.date.replace('年','/').replace('月','/').replace('日','')):'';html+=`<div class="tx-row"><div style="min-width:0;flex:1"><div class="tx-store" title="${esc(tx.store)}">${esc(tx.store)}</div>${date?`<div class="tx-date">${date}</div>`:''}</div><div class="tx-amount${tx.amount<0?' negative':''}">${fmt(tx.amount)}</div></div>`;});html+='</div></div></div>';});
+  return html+'</div></div>';
+}
+
+function render(){const app=document.getElementById('app'),dz=document.getElementById('dropzone'),buttons=document.getElementById('header-buttons');if(!allData.length){app.classList.remove('visible');app.innerHTML='';dz.classList.remove('hidden');buttons.style.display='none';return;}dz.classList.add('hidden');app.classList.add('visible');buttons.style.display='flex';app.innerHTML=formatToolbar()+(currentView==='analysis'?renderAnalysis():renderMonthViews());}
+
+function updateQuery(value,event){filters.query=value;if(queryComposing||event?.isComposing)return;render();const input=document.getElementById('searchInput');if(input){input.focus();input.setSelectionRange(value.length,value.length);}}
+function finishQuery(value){queryComposing=false;setTimeout(()=>{const input=document.getElementById('searchInput');const latest=input?input.value:value;filters.query=latest;render();const nextInput=document.getElementById('searchInput');if(nextInput){nextInput.focus();nextInput.setSelectionRange(latest.length,latest.length);}},0);}
+function updateSort(value){filters.sort=value;render();}
+function toggleSortMenu(event){event.stopPropagation();sortMenuOpen=!sortMenuOpen;render();}
+function chooseSort(value){filters.sort=value;sortMenuOpen=false;render();}
+function switchView(view){currentView=view;render();}
+function switchMonth(fn){activeMonth=decodeURIComponent(fn);render();}
+function selectPerson(fn,name){selectedPerson[decodeURIComponent(fn)]=decodeURIComponent(name);render();}
+function resetAll(){allData=[];activeMonth=null;selectedPerson={};currentView='months';filters={query:'',sort:'date-desc'};statusMessage='';render();}
 
 async function handleFiles(files) {
+  const csvFiles=Array.from(files||[]).filter(file=>/\.csv$/i.test(file.name));
+  if(!csvFiles.length){alert('CSVファイルを選択してください');return;}
+  statusMessage=`${csvFiles.length}件のCSVを読み込み中…`;render();
   const res=[];
-  for (const file of Array.from(files)) {
-    if (!file.name.match(/\.csv$/i)) continue;
-    const buf=await file.arrayBuffer();
-    const text=decodeFile(buf);
-    const data=processCSV(text,file.name);
-    if (data) res.push(data);
-  }
-  if (!res.length){alert('有効なCSVファイルが見つかりませんでした');return;}
+  for(const file of csvFiles){const data=processCSV(decodeFile(await file.arrayBuffer()),file.name);if(data)res.push(data);}
+  if(!res.length){statusMessage='有効なCSVファイルが見つかりませんでした';render();return;}
   res.forEach(d=>{
     const i=allData.findIndex(x=>x.filename===d.filename);
     if(i>=0)allData[i]=d; else allData.push(d);
   });
   allData.sort((a,b)=>a.filename.localeCompare(b.filename));
   if (!activeMonth||!allData.find(d=>d.filename===activeMonth)) activeMonth=allData[allData.length-1].filename;
+  statusMessage=`${res.length}件のCSVを読み込みました`;
   render();
 }
 
 const dz=document.getElementById('dropzone');
 const fi=document.getElementById('fileInput');
+document.addEventListener('click',event=>{if(sortMenuOpen&&!event.target.closest('.sort-menu')){sortMenuOpen=false;render();}});
 fi.addEventListener('change',()=>handleFiles(fi.files));
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
