@@ -363,21 +363,16 @@
     letter-spacing: -0.03em;
     white-space: nowrap;
   }
-  .total-banner-label {
-    font-size: 11px;
-    color: var(--text3);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    margin-bottom: 8px;
-  }
   .total-banner-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
   }
-  .total-chip { border-radius: var(--radius-sm); padding: 10px 12px; }
-  .total-chip-name  { font-size: 11px; font-weight: 500; margin-bottom: 3px; opacity: 0.75; }
-  .total-chip-amount { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; }
+  .total-chip { border-radius: var(--radius-sm); padding: 8px 10px; opacity: .78; cursor: pointer; transition: opacity .15s, transform .1s; }
+  .total-chip:hover, .total-chip.selected { opacity: 1; }
+  .total-chip:active { transform: scale(.98); }
+  .total-chip-name  { font-size: 10px; font-weight: 500; margin-bottom: 2px; opacity: 0.7; }
+  .total-chip-amount { font-size: 16px; font-weight: 700; letter-spacing: -0.03em; }
 
   /* Person cards grid — fills remaining height */
   .person-cards-grid {
@@ -491,9 +486,6 @@
     }
     .total-chip.selected { opacity: 1; }
     .total-chip:active { transform: scale(0.97); }
-    .total-banner-label { display: flex; align-items: center; gap: 4px; }
-    .total-banner-label::after { content: "（タップで明細を切り替え）"; font-weight: 400; opacity: 0.8; }
-
     .person-cards-grid {
       display: flex;
       flex-direction: column;
@@ -508,7 +500,6 @@
 <header style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
   <div>
     <h1>💳 カード明細集計</h1>
-    <p>CSVを読み込むと個人別に自動集計</p>
   </div>
   <div id="header-buttons" class="header-bar" style="display:none;">
     <button class="header-btn" onclick="document.getElementById('fileInput2').click()">📂 追加<input type="file" id="fileInput2" accept=".csv" multiple style="display:none" onchange="handleFiles(this.files)"></button>
@@ -644,7 +635,7 @@ function renderMonthViews(){
   const names=[...new Set(allData.flatMap(m=>m.persons.map(p=>p.name)))],colorMap={};names.forEach((n,i)=>colorMap[n]=COLORS[i%COLORS.length]);
   const people=active.persons.map(p=>{const transactions=visibleTransactions(p,active);return {...p,transactions,total:transactions.reduce((s,tx)=>s+tx.amount,0)};}).filter(p=>p.transactions.length);
   const selected=selectedPerson[active.filename]||(people[0]&&people[0].name),grand=people.reduce((s,p)=>s+p.total,0);
-  html+=`<div class="month-view active"><div class="total-banner"><div class="grand-total"><div class="grand-total-label">${esc(active.month)}の合計金額</div><div class="grand-total-amount">${fmt(grand)}</div></div><div class="total-banner-label">名前別の合計</div><div class="total-banner-grid">`;
+    html+=`<div class="month-view active"><div class="total-banner"><div class="grand-total"><div class="grand-total-label">${esc(active.month)}の合計金額</div><div class="grand-total-amount">${fmt(grand)}</div></div><div class="total-banner-grid">`;
   if(!people.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';
   people.forEach(p=>{const c=colorMap[p.name];html+=`<div class="total-chip${p.name===selected?' selected':''}" onclick="selectPerson('${enc(active.filename)}','${enc(p.name)}')" style="background:${c.bg};border:1px solid ${c.border};"><div class="total-chip-name" style="color:${c.text};">${esc(p.name)}</div><div class="total-chip-amount" style="color:${c.text};">${fmt(p.total)}</div></div>`;});
   html+='</div></div><div class="person-cards-grid">';
