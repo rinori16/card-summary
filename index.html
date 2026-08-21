@@ -30,6 +30,7 @@
   html, body {
     height: 100%;
     overflow: hidden;
+    max-width: 100%;
   }
 
   body {
@@ -38,6 +39,8 @@
     font-family: -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
     display: flex;
     flex-direction: column;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
   }
 
   header {
@@ -53,6 +56,9 @@
 
   main {
     flex: 1;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -96,7 +102,11 @@
   /* ── App (shown when data loaded) ── */
   #app {
     flex: 1;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
+    touch-action: pan-y;
     display: none;          /* shown via JS */
     flex-direction: column;
   }
@@ -214,13 +224,34 @@
     cursor: pointer;
   }
   .view-tab.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+  .period-filter {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 1 auto;
+    color: var(--text3);
+    font-size: 11px;
+  }
+  .period-filter select {
+    min-height: 34px;
+    max-width: 112px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text2);
+    padding: 6px 8px;
+    font: inherit;
+    font-size: 12px;
+  }
 
   /* All-period analysis */
-  .analysis-view { display: none; flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+  .analysis-view { display: none; flex: 1; width: 100%; min-width: 0; max-width: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; }
   .analysis-view.active { display: block; }
   .analysis-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+    width: 100%;
     gap: 10px;
     margin-bottom: 12px;
   }
@@ -229,12 +260,31 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 13px 14px;
+    min-width: 0;
+    max-width: 100%;
   }
   .metric-label { color: var(--text3); font-size: 11px; margin-bottom: 5px; }
-  .metric-value { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
-  .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .metric-value { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; overflow-wrap: anywhere; }
+  .analysis-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-width: 0; width: 100%; gap: 12px; }
   .analysis-card { min-width: 0; overflow: hidden; }
   .analysis-card h2 { font-size: 14px; margin-bottom: 12px; }
+  .analysis-card-wide { grid-column: 1 / -1; }
+  .ranking-list { display: grid; gap: 8px; }
+  .ranking-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 12px; }
+  .ranking-rank { color: var(--text3); font-size: 11px; text-align: center; }
+  .ranking-main { min-width: 0; }
+  .ranking-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ranking-bar-track { height: 5px; margin-top: 5px; border-radius: 9px; background: var(--surface2); overflow: hidden; }
+  .ranking-bar-fill { height: 100%; border-radius: inherit; background: var(--accent1); }
+  .ranking-amount { font-weight: 600; white-space: nowrap; }
+  .comparison-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+  .comparison-table th, .comparison-table td { padding: 8px 5px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .comparison-table th:first-child, .comparison-table td:first-child { text-align: left; }
+  .comparison-up { color: #9a3b2f; }
+  .comparison-down { color: var(--green); }
+  .settlement-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .settlement-table th, .settlement-table td { padding: 8px 5px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .settlement-table th:first-child, .settlement-table td:first-child { text-align: left; }
   .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; overflow: hidden; padding-top: 14px; }
   .bar-column { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
   .bar-value { font-size: 10px; color: var(--text2); white-space: nowrap; }
@@ -391,12 +441,14 @@
     .toolbar { gap: 6px; }
     .toolbar input { flex-basis: 100%; }
     .sort-menu { flex: 1; min-width: 0; }
+    .period-filter { flex: 1 1 100%; }
+    .period-filter select { flex: 1; max-width: none; min-width: 0; }
     .view-tabs { flex: 1; }
     .view-tab { flex: 1; }
-    .analysis-summary { gap: 6px; }
+    .analysis-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .metric-card { padding: 10px; }
     .metric-value { font-size: 16px; }
-    .analysis-grid { grid-template-columns: 1fr; }
+    .analysis-grid { grid-template-columns: minmax(0, 1fr); }
     .total-chip {
       cursor: pointer;
       opacity: 0.5;
@@ -505,13 +557,14 @@ let allData=[], activeMonth=null, selectedPerson={}, currentView='months';
 let filters={query:'',sort:'date-desc'};
 let statusMessage='';
 let queryComposing=false;
+let period={start:'',end:''};
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function enc(value){return encodeURIComponent(String(value??''));}
 function compactAmt(n){return Math.abs(n)>=10000?`${Math.round(n/10000)}万円`:fmt(n);}
 function monthLabel(m){return m.month.replace('年','/').replace('月','');}
 function allTransactions(){return allData.flatMap(m=>m.persons.flatMap(p=>p.transactions.map(tx=>({...tx,name:p.name,filename:m.filename,month:m.month}))));}
-function matches(tx){const q=filters.query.trim().toLowerCase();return !q||[tx.store,tx.name,tx.date,tx.month].some(v=>String(v||'').toLowerCase().includes(q));}
+function matches(tx){const q=filters.query.trim().toLowerCase();const inPeriod=(!period.start||tx.filename>=period.start)&&(!period.end||tx.filename<=period.end);return inPeriod&&(!q||[tx.store,tx.name,tx.date,tx.month].some(v=>String(v||'').toLowerCase().includes(q)));}
 function dateValue(value){const m=String(value||'').match(/(\d{4})年(\d{1,2})月(?:\d{1,2}日)?/);return m?Number(m[1])*10000+Number(m[2])*100+(Number((String(value||'').match(/月(\d{1,2})日/)||[])[1])||0):0;}
 function sortTransactions(items){return [...items].sort((a,b)=>{if(filters.sort==='amount-desc')return b.amount-a.amount;if(filters.sort==='amount-asc')return a.amount-b.amount;if(filters.sort==='store')return String(a.store).localeCompare(String(b.store),'ja');const order=dateValue(a.date||a.month)-dateValue(b.date||b.month);return filters.sort==='date-asc'?order:-order;});}
 function visibleTransactions(p,m){return sortTransactions(p.transactions.map(tx=>({...tx,name:p.name,filename:m.filename,month:m.month})).filter(matches));}
@@ -520,18 +573,29 @@ let sortMenuOpen=false;
 function formatToolbar(){
   const sortLabel=sortOptions.find(([value])=>value===filters.sort)?.[1]||sortOptions[0][1];
   const options=sortOptions.map(([value,label])=>`<button class="sort-option${filters.sort===value?' selected':''}" onclick="chooseSort('${value}')"><span>${label}</span>${filters.sort===value?'<span class="sort-option-check">✓</span>':''}</button>`).join('');
-  return `<div class="toolbar"><input id="searchInput" type="search" placeholder="利用先・名前・日付で検索" value="${esc(filters.query)}" oncompositionstart="queryComposing=true" oncompositionend="finishQuery(this.value)" oninput="updateQuery(this.value, event)" onchange="finishQuery(this.value)" onkeyup="if(event.key==='Enter') finishQuery(this.value)"><div class="sort-menu${sortMenuOpen?' open':''}"><button class="sort-trigger" aria-expanded="${sortMenuOpen}" onclick="toggleSortMenu(event)"><span class="sort-trigger-label">${sortLabel}</span><span class="sort-trigger-icon">⌄</span></button><div class="sort-options" role="menu">${options}</div></div><div class="view-tabs"><button class="view-tab${currentView==='months'?' active':''}" onclick="switchView('months')">月別明細</button><button class="view-tab${currentView==='analysis'?' active':''}" onclick="switchView('analysis')">全期間分析</button></div></div>${statusMessage?`<div class="status-message">${esc(statusMessage)}</div>`:''}`;
+  const startOptions=allData.map(m=>`<option value="${esc(m.filename)}"${period.start===m.filename?' selected':''}>${esc(m.month)}</option>`).join('');
+  const endOptions=allData.map(m=>`<option value="${esc(m.filename)}"${period.end===m.filename?' selected':''}>${esc(m.month)}</option>`).join('');
+  return `<div class="toolbar"><input id="searchInput" type="search" placeholder="利用先・名前・日付で検索" value="${esc(filters.query)}" oncompositionstart="queryComposing=true" oncompositionend="finishQuery(this.value)" oninput="updateQuery(this.value, event)" onchange="finishQuery(this.value)" onkeyup="if(event.key==='Enter') finishQuery(this.value)"><div class="sort-menu${sortMenuOpen?' open':''}"><button class="sort-trigger" aria-expanded="${sortMenuOpen}" onclick="toggleSortMenu(event)"><span class="sort-trigger-label">${sortLabel}</span><span class="sort-trigger-icon">⌄</span></button><div class="sort-options" role="menu">${options}</div></div><div class="period-filter"><span>期間</span><select onchange="updatePeriod('start',this.value)" aria-label="開始月"><option value="">開始月</option>${startOptions}</select><span>〜</span><select onchange="updatePeriod('end',this.value)" aria-label="終了月"><option value="">終了月</option>${endOptions}</select></div><div class="view-tabs"><button class="view-tab${currentView==='months'?' active':''}" onclick="switchView('months')">月別明細</button><button class="view-tab${currentView==='analysis'?' active':''}" onclick="switchView('analysis')">全期間分析</button></div></div>${statusMessage?`<div class="status-message">${esc(statusMessage)}</div>`:''}`;
 }
 
 function renderAnalysis(){
   const tx=sortTransactions(allTransactions().filter(matches));
   const total=tx.reduce((sum,item)=>sum+item.amount,0);
   const months=allData.map(m=>{const items=tx.filter(item=>item.filename===m.filename);return {...m,total:items.reduce((sum,item)=>sum+item.amount,0),count:items.length};}).filter(m=>m.count);
-  const max=Math.max(...months.map(m=>Math.abs(m.total)),1),names=[...new Set(tx.map(item=>item.name))];
+  const max=Math.max(...months.map(m=>Math.abs(m.total)),1);
+  const storeMap={};tx.forEach(item=>{const key=item.store||'（利用先不明）';if(!storeMap[key])storeMap[key]={name:key,total:0,count:0};storeMap[key].total+=item.amount;storeMap[key].count++;});
+  const stores=Object.values(storeMap).sort((a,b)=>b.total-a.total).slice(0,8);
+  const names=[...new Set(tx.map(item=>item.name))];
   let html='<div class="analysis-view active"><div class="analysis-summary"><div class="metric-card"><div class="metric-label">全期間の合計</div><div class="metric-value">'+fmt(total)+'</div></div><div class="metric-card"><div class="metric-label">利用件数</div><div class="metric-value">'+tx.length.toLocaleString('ja-JP')+'件</div></div><div class="metric-card"><div class="metric-label">月平均</div><div class="metric-value">'+fmt(months.length?Math.round(total/months.length):0)+'</div></div></div><div class="analysis-grid"><section class="analysis-card"><h2>月別合計</h2>';
   if(!months.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="bar-chart">';months.forEach(m=>{const h=Math.max(Math.round(Math.abs(m.total)/max*135),3);html+=`<div class="bar-column"><div class="bar-value">${compactAmt(m.total)}</div><div class="bar" style="height:${h}px" title="${esc(m.month)} ${fmt(m.total)}"></div><div class="bar-label">${esc(monthLabel(m))}</div></div>`;});html+='</div>';}
-  html+='</section><section class="analysis-card"><h2>名前別の月別推移</h2>';
+  html+='</section><section class="analysis-card"><h2>利用先ランキング</h2>';
+  if(!stores.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="ranking-list">';stores.forEach((store,i)=>{const width=Math.max(Math.round(store.total/stores[0].total*100),2);html+=`<div class="ranking-row"><div class="ranking-rank">${i+1}</div><div class="ranking-main"><div class="ranking-name" title="${esc(store.name)}">${esc(store.name)} <span style="color:var(--text3)">${store.count}件</span></div><div class="ranking-bar-track"><div class="ranking-bar-fill" style="width:${width}%"></div></div></div><div class="ranking-amount">${fmt(store.total)}</div></div>`;});html+='</div>';}
+  html+='</section><section class="analysis-card analysis-card-wide"><h2>前月比</h2>';
+  if(!months.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div style="overflow:hidden"><table class="comparison-table"><thead><tr><th>月</th><th>合計</th><th>前月差</th><th>増減率</th></tr></thead><tbody>';months.forEach((m,i)=>{const prev=months[i-1],diff=prev?m.total-prev.total:null,rate=prev&&prev.total?`${((diff/Math.abs(prev.total))*100).toFixed(1)}%`:'—';html+=`<tr><td>${esc(m.month)}</td><td>${fmt(m.total)}</td><td class="${diff>0?'comparison-up':diff<0?'comparison-down':''}">${diff===null?'—':fmt(diff)}</td><td class="${diff>0?'comparison-up':diff<0?'comparison-down':''}">${rate}</td></tr>`;});html+='</tbody></table></div>';}
+  html+='</section><section class="analysis-card analysis-card-wide"><h2>名前別の月別推移</h2>';
   if(!names.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div style="overflow:hidden"><table class="trend-table"><thead><tr><th>名前</th>';months.forEach(m=>html+=`<th>${esc(monthLabel(m))}</th>`);html+='</tr></thead><tbody>';names.forEach(name=>{html+=`<tr><td>${esc(name)}</td>`;months.forEach(m=>{const sum=tx.filter(item=>item.name===name&&item.filename===m.filename).reduce((s,item)=>s+item.amount,0);html+=`<td>${fmt(sum)}</td>`;});html+='</tr>';});html+='</tbody></table></div>';}
+  html+='</section><section class="analysis-card analysis-card-wide"><h2>人別の精算目安（均等割り）</h2>';
+  if(!names.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{const equal=total/names.length;html+=`<div class="metric-label" style="margin-bottom:8px">1人あたりの均等負担額：${fmt(Math.round(equal))}</div><div style="overflow:hidden"><table class="settlement-table"><thead><tr><th>名前</th><th>利用額</th><th>全体比</th><th>均等割りとの差額</th></tr></thead><tbody>`;names.forEach(name=>{const amount=tx.filter(item=>item.name===name).reduce((s,item)=>s+item.amount,0),diff=amount-equal;html+=`<tr><td>${esc(name)}</td><td>${fmt(amount)}</td><td>${total?((amount/total)*100).toFixed(1):'0.0'}%</td><td class="${diff>=0?'comparison-up':'comparison-down'}">${fmt(diff)}</td></tr>`;});html+='</tbody></table></div>';}
   return html+'</section></div></div>';
 }
 
@@ -554,12 +618,13 @@ function render(){const app=document.getElementById('app'),dz=document.getElemen
 function updateQuery(value,event){filters.query=value;if(queryComposing||event?.isComposing)return;render();const input=document.getElementById('searchInput');if(input){input.focus();input.setSelectionRange(value.length,value.length);}}
 function finishQuery(value){queryComposing=false;setTimeout(()=>{const input=document.getElementById('searchInput');const latest=input?input.value:value;filters.query=latest;render();const nextInput=document.getElementById('searchInput');if(nextInput){nextInput.focus();nextInput.setSelectionRange(latest.length,latest.length);}},0);}
 function updateSort(value){filters.sort=value;render();}
+function updatePeriod(which,value){period[which]=value;if(period.start&&period.end&&period.start>period.end){if(which==='start')period.end=value;else period.start=value;}render();}
 function toggleSortMenu(event){event.stopPropagation();sortMenuOpen=!sortMenuOpen;render();}
 function chooseSort(value){filters.sort=value;sortMenuOpen=false;render();}
 function switchView(view){currentView=view;render();}
 function switchMonth(fn){activeMonth=decodeURIComponent(fn);render();}
 function selectPerson(fn,name){selectedPerson[decodeURIComponent(fn)]=decodeURIComponent(name);render();}
-function resetAll(){allData=[];activeMonth=null;selectedPerson={};currentView='months';filters={query:'',sort:'date-desc'};statusMessage='';render();}
+function resetAll(){allData=[];activeMonth=null;selectedPerson={};currentView='months';filters={query:'',sort:'date-desc'};period={start:'',end:''};statusMessage='';render();}
 
 async function handleFiles(files) {
   const csvFiles=Array.from(files||[]).filter(file=>/\.csv$/i.test(file.name));
