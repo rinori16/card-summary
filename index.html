@@ -139,6 +139,26 @@
     padding: 12px 14px;
     margin-bottom: 12px;
   }
+  .grand-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .grand-total-label {
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .grand-total-amount {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
   .total-banner-label {
     font-size: 11px;
     color: var(--text3);
@@ -388,7 +408,13 @@ function render() {
 
     // Total banner
     const sel = selectedPerson[m.filename] || (m.persons[0] && m.persons[0].name);
-    html+=`<div class="total-banner"><div class="total-banner-label">今月の合計</div><div class="total-banner-grid">`;
+    const grandTotal = m.persons.reduce((sum, p) => sum + p.total, 0);
+    html+=`<div class="total-banner">
+      <div class="grand-total">
+        <div class="grand-total-label">今月の合計金額</div>
+        <div class="grand-total-amount">${fmt(grandTotal)}</div>
+      </div>
+      <div class="total-banner-label">名前別の合計</div><div class="total-banner-grid">`;
     m.persons.forEach(p=>{
       const c=colorMap[p.name];
       const isSel=p.name===sel?' selected':'';
