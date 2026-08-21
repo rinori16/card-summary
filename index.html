@@ -216,7 +216,7 @@
   .view-tab.active { background: var(--text); border-color: var(--text); color: var(--bg); }
 
   /* All-period analysis */
-  .analysis-view { display: none; flex: 1; min-height: 0; overflow-y: auto; }
+  .analysis-view { display: none; flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
   .analysis-view.active { display: block; }
   .analysis-summary {
     display: grid;
@@ -233,14 +233,15 @@
   .metric-label { color: var(--text3); font-size: 11px; margin-bottom: 5px; }
   .metric-value { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
   .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .analysis-card { min-width: 0; overflow: hidden; }
   .analysis-card h2 { font-size: 14px; margin-bottom: 12px; }
-  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; overflow-x: auto; padding-top: 14px; }
-  .bar-column { flex: 1 0 46px; min-width: 46px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; overflow: hidden; padding-top: 14px; }
+  .bar-column { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
   .bar-value { font-size: 10px; color: var(--text2); white-space: nowrap; }
   .bar { width: 28px; min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--accent1); }
   .bar-label { font-size: 10px; color: var(--text3); white-space: nowrap; }
-  .trend-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .trend-table th, .trend-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .trend-table { width: 100%; max-width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+  .trend-table th, .trend-table td { overflow: hidden; text-overflow: ellipsis; padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
   .trend-table th:first-child, .trend-table td:first-child { text-align: left; }
   .trend-table th { color: var(--text3); font-weight: 500; }
   .empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 30px 12px; }
@@ -530,7 +531,7 @@ function renderAnalysis(){
   let html='<div class="analysis-view active"><div class="analysis-summary"><div class="metric-card"><div class="metric-label">全期間の合計</div><div class="metric-value">'+fmt(total)+'</div></div><div class="metric-card"><div class="metric-label">利用件数</div><div class="metric-value">'+tx.length.toLocaleString('ja-JP')+'件</div></div><div class="metric-card"><div class="metric-label">月平均</div><div class="metric-value">'+fmt(months.length?Math.round(total/months.length):0)+'</div></div></div><div class="analysis-grid"><section class="analysis-card"><h2>月別合計</h2>';
   if(!months.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="bar-chart">';months.forEach(m=>{const h=Math.max(Math.round(Math.abs(m.total)/max*135),3);html+=`<div class="bar-column"><div class="bar-value">${compactAmt(m.total)}</div><div class="bar" style="height:${h}px" title="${esc(m.month)} ${fmt(m.total)}"></div><div class="bar-label">${esc(monthLabel(m))}</div></div>`;});html+='</div>';}
   html+='</section><section class="analysis-card"><h2>名前別の月別推移</h2>';
-  if(!names.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>名前</th>';months.forEach(m=>html+=`<th>${esc(monthLabel(m))}</th>`);html+='</tr></thead><tbody>';names.forEach(name=>{html+=`<tr><td>${esc(name)}</td>`;months.forEach(m=>{const sum=tx.filter(item=>item.name===name&&item.filename===m.filename).reduce((s,item)=>s+item.amount,0);html+=`<td>${fmt(sum)}</td>`;});html+='</tr>';});html+='</tbody></table></div>';}
+  if(!names.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div style="overflow:hidden"><table class="trend-table"><thead><tr><th>名前</th>';months.forEach(m=>html+=`<th>${esc(monthLabel(m))}</th>`);html+='</tr></thead><tbody>';names.forEach(name=>{html+=`<tr><td>${esc(name)}</td>`;months.forEach(m=>{const sum=tx.filter(item=>item.name===name&&item.filename===m.filename).reduce((s,item)=>s+item.amount,0);html+=`<td>${fmt(sum)}</td>`;});html+='</tr>';});html+='</tbody></table></div>';}
   return html+'</section></div></div>';
 }
 
