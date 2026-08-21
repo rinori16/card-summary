@@ -248,6 +248,8 @@
     justify-content: flex-end;
     margin-bottom: 12px;
   }
+  .period-filter .period-menu { flex: 1 1 150px; min-width: 0; }
+  .period-filter .sort-trigger { min-height: 34px; }
 
   /* All-period analysis */
   .analysis-view { display: none; flex: 1; width: 100%; min-width: 0; max-width: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; }
@@ -602,11 +604,17 @@ function dateValue(value){const m=String(value||'').match(/(\d{4})年(\d{1,2})�
 function sortTransactions(items){return [...items].sort((a,b)=>{if(filters.sort==='amount-desc')return b.amount-a.amount;if(filters.sort==='amount-asc')return a.amount-b.amount;if(filters.sort==='store')return String(a.store).localeCompare(String(b.store),'ja');const order=dateValue(a.date||a.month)-dateValue(b.date||b.month);return filters.sort==='date-asc'?order:-order;});}
 function visibleTransactions(p,m){return sortTransactions(p.transactions.map(tx=>({...tx,name:p.name,filename:m.filename,month:m.month})).filter(matches));}
 const sortOptions=[['date-desc','日付が新しい順'],['date-asc','日付が古い順'],['amount-desc','金額が大きい順'],['amount-asc','金額が小さい順'],['store','利用先名順']];
-let sortMenuOpen=false;
+let sortMenuOpen=false, periodMenuOpen=null;
 function formatToolbar(){
   const sortLabel=sortOptions.find(([value])=>value===filters.sort)?.[1]||sortOptions[0][1];
   const options=sortOptions.map(([value,label])=>`<button class="sort-option${filters.sort===value?' selected':''}" onclick="chooseSort('${value}')"><span>${label}</span>${filters.sort===value?'<span class="sort-option-check">✓</span>':''}</button>`).join('');
   return `<div class="toolbar"><input id="searchInput" type="search" placeholder="利用先・名前・日付で検索" value="${esc(filters.query)}" oncompositionstart="queryComposing=true" oncompositionend="finishQuery(this.value)" oninput="updateQuery(this.value, event)" onchange="finishQuery(this.value)" onkeyup="if(event.key==='Enter') finishQuery(this.value)"><div class="sort-menu${sortMenuOpen?' open':''}"><button class="sort-trigger" aria-expanded="${sortMenuOpen}" onclick="toggleSortMenu(event)"><span class="sort-trigger-label">${sortLabel}</span><span class="sort-trigger-icon">⌄</span></button><div class="sort-options" role="menu">${options}</div></div><div class="view-tabs"><button class="view-tab${currentView==='months'?' active':''}" onclick="switchView('months')">月別明細</button><button class="view-tab${currentView==='analysis'?' active':''}" onclick="switchView('analysis')">分析</button></div></div>${statusMessage?`<div class="status-message">${esc(statusMessage)}</div>`:''}`;
+}
+
+function periodMenuHTML(which,placeholder,value){
+  const selectedLabel=value?(allData.find(m=>m.filename===value)?.month||placeholder):placeholder;
+  const options=[['',placeholder],...allData.map(m=>[m.filename,m.month])].map(([optionValue,label])=>`<button class="sort-option${value===optionValue?' selected':''}" onclick="choosePeriod('${which}','${enc(optionValue)}')"><span>${esc(label)}</span>${value===optionValue?'<span class="sort-option-check">✓</span>':''}</button>`).join('');
+  return `<div class="sort-menu period-menu${periodMenuOpen===which?' open':''}"><button class="sort-trigger" aria-label="${placeholder}" aria-expanded="${periodMenuOpen===which}" onclick="togglePeriodMenu('${which}',event)"><span class="sort-trigger-label">${esc(selectedLabel)}</span><span class="sort-trigger-icon">⌄</span></button><div class="sort-options" role="menu">${options}</div></div>`;
 }
 
 function renderAnalysis(){
@@ -617,9 +625,7 @@ function renderAnalysis(){
   const storeMap={};tx.forEach(item=>{const key=item.store||'（利用先不明）';if(!storeMap[key])storeMap[key]={name:key,total:0,count:0};storeMap[key].total+=item.amount;storeMap[key].count++;});
   const stores=Object.values(storeMap).sort((a,b)=>b.total-a.total).slice(0,8);
   const names=[...new Set(tx.map(item=>item.name))];
-  const startOptions=allData.map(m=>`<option value="${esc(m.filename)}"${period.start===m.filename?' selected':''}>${esc(m.month)}</option>`).join('');
-  const endOptions=allData.map(m=>`<option value="${esc(m.filename)}"${period.end===m.filename?' selected':''}>${esc(m.month)}</option>`).join('');
-  let html=`<div class="analysis-view active"><div class="analysis-controls"><div class="period-filter"><span>表示期間</span><select onchange="updatePeriod('start',this.value)" aria-label="開始月"><option value="">開始月</option>${startOptions}</select><span>〜</span><select onchange="updatePeriod('end',this.value)" aria-label="終了月"><option value="">終了月</option>${endOptions}</select></div></div><div class="analysis-summary"><div class="metric-card"><div class="metric-label">表示期間の合計</div><div class="metric-value">${fmt(total)}</div></div><div class="metric-card"><div class="metric-label">利用件数</div><div class="metric-value">${tx.length.toLocaleString('ja-JP')}件</div></div><div class="metric-card"><div class="metric-label">月平均</div><div class="metric-value">${fmt(months.length?Math.round(total/months.length):0)}</div></div></div><div class="analysis-grid"><section class="analysis-card"><h2>月別合計</h2>`;
+  let html=`<div class="analysis-view active"><div class="analysis-controls"><div class="period-filter"><span>表示期間</span>${periodMenuHTML('start','開始月',period.start)}<span>〜</span>${periodMenuHTML('end','終了月',period.end)}</div></div><div class="analysis-summary"><div class="metric-card"><div class="metric-label">表示期間の合計</div><div class="metric-value">${fmt(total)}</div></div><div class="metric-card"><div class="metric-label">利用件数</div><div class="metric-value">${tx.length.toLocaleString('ja-JP')}件</div></div><div class="metric-card"><div class="metric-label">月平均</div><div class="metric-value">${fmt(months.length?Math.round(total/months.length):0)}</div></div></div><div class="analysis-grid"><section class="analysis-card"><h2>月別合計</h2>`;
   if(!months.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="bar-chart">';months.forEach(m=>{const h=Math.max(Math.round(Math.abs(m.total)/max*135),3);html+=`<div class="bar-column"><div class="bar-value">${compactAmt(m.total)}</div><div class="bar" style="height:${h}px" title="${esc(m.month)} ${fmt(m.total)}"></div><div class="bar-label">${esc(monthLabel(m))}</div></div>`;});html+='</div>';}
   html+='</section><section class="analysis-card"><h2>利用先ランキング</h2>';
   if(!stores.length)html+='<div class="empty-state">条件に一致する明細がありません</div>';else{html+='<div class="ranking-list">';stores.forEach((store,i)=>{const width=Math.max(Math.round(store.total/stores[0].total*100),2);html+=`<div class="ranking-row"><div class="ranking-rank">${i+1}</div><div class="ranking-main"><div class="ranking-name" title="${esc(store.name)}">${esc(store.name)} <span style="color:var(--text3)">${store.count}件</span></div><div class="ranking-bar-track"><div class="ranking-bar-fill" style="width:${width}%"></div></div></div><div class="ranking-amount">${fmt(store.total)}</div></div>`;});html+='</div>';}
@@ -654,10 +660,12 @@ function updateSort(value){filters.sort=value;render();}
 function updatePeriod(which,value){period[which]=value;if(period.start&&period.end&&period.start>period.end){if(which==='start')period.end=value;else period.start=value;}render();}
 function toggleSortMenu(event){event.stopPropagation();sortMenuOpen=!sortMenuOpen;render();}
 function chooseSort(value){filters.sort=value;sortMenuOpen=false;render();}
+function togglePeriodMenu(which,event){event.stopPropagation();periodMenuOpen=periodMenuOpen===which?null:which;render();}
+function choosePeriod(which,value){periodMenuOpen=null;updatePeriod(which,decodeURIComponent(value));}
 function switchView(view){currentView=view;render();}
 function switchMonth(fn){activeMonth=decodeURIComponent(fn);render();}
 function selectPerson(fn,name){selectedPerson[decodeURIComponent(fn)]=decodeURIComponent(name);render();}
-function resetAll(){allData=[];activeMonth=null;selectedPerson={};currentView='months';filters={query:'',sort:'date-desc'};period={start:'',end:''};statusMessage='';render();}
+function resetAll(){allData=[];activeMonth=null;selectedPerson={};currentView='months';filters={query:'',sort:'date-desc'};period={start:'',end:''};sortMenuOpen=false;periodMenuOpen=null;statusMessage='';render();}
 
 async function handleFiles(files) {
   const csvFiles=Array.from(files||[]).filter(file=>/\.csv$/i.test(file.name));
@@ -678,7 +686,7 @@ async function handleFiles(files) {
 
 const dz=document.getElementById('dropzone');
 const fi=document.getElementById('fileInput');
-document.addEventListener('click',event=>{if(sortMenuOpen&&!event.target.closest('.sort-menu')){sortMenuOpen=false;render();}});
+document.addEventListener('click',event=>{if((sortMenuOpen||periodMenuOpen)&&!event.target.closest('.sort-menu')){sortMenuOpen=false;periodMenuOpen=null;render();}});
 fi.addEventListener('change',()=>handleFiles(fi.files));
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
